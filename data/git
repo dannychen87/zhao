@@ -1,0 +1,145 @@
+Git则需要SSH的配置。 
+github的SSH配置如下: 
+一、 设置Git的user name和email:
+$ git config --global user.name "xuhaiyan"
+$ git config --global user.email "haiyan.xu.vip@gmail.com" 
+二、生成SSH密钥过程: 1.查看是否已经有了ssh密钥:cd ~/.ssh 如果没有密钥则不会有此文件夹,有则备份删除 2.生存密钥:
+$ ssh-keygen -t rsa -C “haiyan.xu.vip@gmail.com” 按3个回车,密码为空。 
+Your identification has been saved in /home/tekkub/.ssh/id_rsa. Your public key has been saved in /home/tekkub/.ssh/id_rsa.pub. The key fingerprint is:
+.................. 
+最后得到了两个文件:id_rsa和id_rsa.pub 
+3.添加密钥到ssh:ssh-add 文件名
+需要之前输入密码。 4.在github上添加ssh密钥,这要添加的是“id_rsa.pub”里面的公钥。 打开https://github.com/ ,登陆xuhaiyan825,然后添加ssh。 
+5.测试:ssh git@github.com
+The authenticity of host ‘github.com (207.97.227.239)’ can’t be established. 
+RSA key fingerprint is 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added ‘github.com,207.97.227.239′ (RSA) to the list of known hosts. ERROR: Hi tekkub! You’ve successfully authenticated, but GitHub does not provide shell access
+
+
+克隆仓库到本地：
+$ git clone git@github.paypal.com:cdanny/G11N-Parent.git
+
+git 添加远程仓库：
+origin为自己的仓库，upstream为 international quality的仓库
+$ git remote add origin git@github.paypal.com:cdanny/G11N-Parent.git
+$ git remote add upstream git@github.paypal.com:InternationalQuality/G11N-Parent.git     
+
+$ git fetch upstream 将远程最新的代码fetch下来
+$ git fetch origin 可以将之前创建的分支fetch下来  
+
+** clone完后 先fetch，所有的分支才会有
+
+关于git remote的
+$ git remote 查看有哪些远程仓库
+$ git remote -v 显示对应克隆地址
+$ git remote show [remote-name]  查看远程仓库信息
+$ git remote add [short-name] [url] 添加远程仓库   
+$ git remote rename [old-name] [new-name]  重命名
+$ git remote rm   删除远程仓库      
+
+可以让新的分支在github上显示出来
+$ git push --set-upstream origin 分支名称
+
+删除本地分支
+$ git branch -d [branch name]
+强制删除本地分支
+$ git branch -D [branch name]
+
+命令行删除github分支
+$ git push origin --delete [branch name]
+
+$ git push origin --delete <branch>  # Git version 1.7.0 or newer
+$ git push origin :<branch>          # Git versions older than 1.7.0
+
+重命名本地分支
+$ git branch -m [old-name] [new-name]
+
+新建一个自动复制了develop最新代码的分支
+$ git checkout -b [branch name] upstream/develop
+
+常规步骤：commit & stash保证工作目录clean 
+$ git fetch upstream
+
+$ git rebase upstream/develop
+
+$ git push origin [branch name] -f (强制提交)
+
+先提交，再fetch rebase，就不会出现diverge了 ———— 工作目录是clean的情况下fetch rebase，不会出现diverge
+保证本地和远程分支的一致
+                            
+$ git stash
+$ git stash pop
+
+$ git cherry-pick [SHA1 ID]
+
+获得远程分支信息
+$ git remote show [branch name]
+
+$ git pull           相当于fetch + merge
+$ git pull --rebase  相当于fetch + rebase
+
+reset至某步骤操作之前
+$ git reflog -...
+$ git reset HEAD...
+
+合并两个commit
+$ git rebase -i HEAD~2 
+- 改第二个为 s 保存退出
+- 删掉第二个commit名字 保存退出
+
+$ reset 清屏
+
+$ git reflog show  显示以往commit操作历史
+
+
+在git中如果想忽略掉某个文件，不让这个文件提交到版本库中，可以使用修改根目录中 .gitignore 文件的方法（如无，则需自己手工建立此文件）。这个文件每一行保存了一个匹配的规则
+
+把某些目录或文件加入忽略规则，发现并未生效，原因是.gitignore只能忽略那些原来没有被track的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的。那么解决方法就是先把本地缓存删除（改变成未track状态），然后再提交：
+
+$ git rm -r --cached .
+$ git add .
+$ git commit -m 'update .gitignore'
+
+改commit author
+git commit --amend --author="NewAuthor <NewEmail@address.com>"
+
+$ git log -2
+	- 取第二个SHA1值
+$ git reset --mixed SHA1值
+重新提交
+
+
+git mv A B 重命名A为B
+
+运行 git mv 就相当于运行了下面三条命令：
+
+$ mv README.md README
+$ git rm README.md
+$ git add README
+
+所以也可以自己去运行这些命令，到达git mv的效果(在使用git rm 命令时，先备份数据)
+
+$ git rm ; git add  ;  git commit -m "rename file"\
+
+移动文件
+不像其它的 VCS 系统，Git 并不显式跟踪文件移动操作。 如果在 Git 中重命名了某个文件，仓库中存储的元数据并不会体现出这是一次改名操作。 不过 Git 非常聪明，它会推断出究竟发生了什么，至于具体是如何做到的，我们稍后再谈。
+
+既然如此，当你看到 Git 的 mv 命令时一定会困惑不已。 要在 Git 中对文件改名，可以这么做：
+
+$ git mv file_from file_to
+它会恰如预期般正常工作。 实际上，即便此时查看状态信息，也会明白无误地看到关于重命名操作的说明：
+
+$ git mv README.md README
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+    renamed:    README.md -> README
+其实，运行 git mv 就相当于运行了下面三条命令：
+
+$ mv README.md README
+$ git rm README.md
+$ git add README
+如此分开操作，Git 也会意识到这是一次改名，所以不管何种方式结果都一样。 两者唯一的区别是，mv 是一条命令而另一种方式需要三条命令，直接用 git mv 轻便得多。 不过有时候用其他工具批处理改名的话，要记得在提交前删除老的文件名，再添加新的文件名。
